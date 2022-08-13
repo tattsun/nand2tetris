@@ -25,7 +25,7 @@ type token struct {
 func (t *token) String() string {
 	if t.CommandType == A_COMMAND {
 		return fmt.Sprintf("@%s", t.Symbol)
-	} else {
+	} else if t.CommandType == C_COMMAND {
 		str := ""
 		if len(t.Dest) > 0 {
 			str += t.Dest + "="
@@ -35,6 +35,8 @@ func (t *token) String() string {
 			str += ";" + t.Jump
 		}
 		return str
+	} else {
+		return fmt.Sprintf("(%s)", t.Symbol)
 	}
 
 }
@@ -76,6 +78,11 @@ func (p *Parser) Advance() error {
 
 	if lookAhead.Type == TOKEN_TYPE_SYMBOL {
 		p.currentToken, err = p.mustCCommand()
+		return err
+	}
+
+	if lookAhead.Type == TOKEN_TYPE_L_PAREN {
+		p.currentToken, err = p.mustLCommand()
 		return err
 	}
 
@@ -125,6 +132,28 @@ func (p *Parser) mustCCommand() (*token, error) {
 	}
 
 	return t, nil
+}
+
+func (p *Parser) mustLCommand() (*token, error) {
+	_, err := p.mustToken(TOKEN_TYPE_L_PAREN)
+	if err != nil {
+		return nil, err
+	}
+
+	sym, err := p.mustToken(TOKEN_TYPE_SYMBOL)
+	if err != nil {
+		return nil, err
+	}
+
+	_, err = p.mustToken(TOKEN_TYPE_R_PAREN)
+	if err != nil {
+		return nil, err
+	}
+
+	return &token{
+		CommandType: L_COMMAND,
+		Symbol:      sym,
+	}, nil
 }
 
 func (p *Parser) mustACommand() (*token, error) {
@@ -201,19 +230,6 @@ func (p *Parser) mustComp() (string, error) {
 	}
 
 	return "", nil
-}
-
-func (p *Parser) mustRegister() (string, error) {
-	sym, err := p.mustToken(TOKEN_TYPE_SYMBOL)
-	if err != nil {
-		return "", err
-	}
-
-	if sym == "A" || sym == "M" || sym == "D" {
-		return sym, nil
-	}
-
-	return "", fmt.Errorf("expected register but got: %s", sym)
 }
 
 func (p *Parser) mustJump() (string, error) {

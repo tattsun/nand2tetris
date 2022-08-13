@@ -1,7 +1,7 @@
 package main
 
 func IsAlpha(c rune) bool {
-	return 'A' <= c && c <= 'a'
+	return 'A' <= c && c <= 'z'
 }
 
 func IsNumber(c rune) bool {
@@ -11,8 +11,11 @@ func IsNumber(c rune) bool {
 func IsSymbol(c rune) bool {
 	switch c {
 	case '_':
+		return true
 	case '.':
+		return true
 	case '$':
+		return true
 	case ':':
 		return true
 	default:

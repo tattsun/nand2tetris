@@ -11,8 +11,8 @@ type TokenType string
 const (
 	TOKEN_TYPE_SYMBOL    TokenType = "TOKEN_TYPE_SYMBOL"    // hoge
 	TOKEN_TYPE_ATSIGN    TokenType = "TOKEN_TYPE_ATSIGN"    // @
-	TOKEN_TYPE_L_PAEN    TokenType = "TOKEN_TYPE_L_PAREN"   // (
-	TOKEN_TYPE_R_PAEN    TokenType = "TOKEN_TYPE_R_PAREN"   // )
+	TOKEN_TYPE_L_PAREN   TokenType = "TOKEN_TYPE_L_PAREN"   // (
+	TOKEN_TYPE_R_PAREN   TokenType = "TOKEN_TYPE_R_PAREN"   // )
 	TOKEN_TYPE_PLUS      TokenType = "TOKEN_TYPE_PLUS"      // +
 	TOKEN_TYPE_MINUS     TokenType = "TOKEN_TYPE_MINUS"     // -
 	TOKEN_TYPE_EQUAL     TokenType = "TOKEN_TYPE_EQUAL"     // =
@@ -115,14 +115,14 @@ func (t *Tokenizer) read() (Token, error) {
 
 		if r == '(' {
 			return Token{
-				Type:  TOKEN_TYPE_L_PAEN,
+				Type:  TOKEN_TYPE_L_PAREN,
 				Value: "(",
 			}, nil
 		}
 
 		if r == ')' {
 			return Token{
-				Type:  TOKEN_TYPE_R_PAEN,
+				Type:  TOKEN_TYPE_R_PAREN,
 				Value: ")",
 			}, nil
 		}
