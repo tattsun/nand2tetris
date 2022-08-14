@@ -7,12 +7,16 @@ EMULATOR=${TOOL_DIR}/VMEmulator.sh
 
 CNT=0
 
+RED="\e[31m"
+GREEN="\e[32m"
+CLEAR="\e[m"
+
 do_test() {
     CNT=$(( ${CNT}+1 ))
 
     ${TRANSLATOR} ${1}.vm > /tmp/translator_output 2>&1
     if [ $? -ne 0 ]; then
-        echo Test ${CNT} Failed ${1}: Translator Failed
+        echo ${RED}Test ${CNT} Failed ${1}: Translator Failed${CLEAR}
         cat /tmp/translator_output
         echo
         return
@@ -34,7 +38,7 @@ do_test() {
         return
     fi
 
-    echo Test ${CNT} OK ${1}
+    echo ${GREEN}Test ${CNT} OK ${1}${CLEAR}
 }
 
 echo --- Compile
@@ -47,4 +51,4 @@ do_test ${BASEDIR}/07/StackArithmetic/SimpleAdd/SimpleAdd
 do_test ${BASEDIR}/07/StackArithmetic/StackTest/StackTest
 do_test ${BASEDIR}/07/MemoryAccess/BasicTest/BasicTest
 do_test ${BASEDIR}/07/MemoryAccess/PointerTest/PointerTest
-do_test ${BASEDIR}/07/MemoryAccess/Statictest/StaticTest
+do_test ${BASEDIR}/07/MemoryAccess/StaticTest/StaticTest
