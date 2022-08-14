@@ -1,4 +1,7 @@
-.PHONY: build
+.PHONY: build test
 
 build:
 	go build -o vm_translator *.go
+
+test:
+	sh ./run_test.sh
