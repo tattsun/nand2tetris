@@ -3,7 +3,7 @@ BASEDIR=../..
 TOOL_DIR=${BASEDIR}/original/tools
 ASSEMBLER=${BASEDIR}/project/assembler/assembler
 TRANSLATOR=${BASEDIR}/project/vm_translator/vm_translator
-EMULATOR=${TOOL_DIR}/VMEmulator.sh
+EMULATOR=${TOOL_DIR}/CPUEmulator.sh
 
 CNT=0
 
@@ -24,7 +24,7 @@ do_test() {
 
     ${ASSEMBLER} ${1}.asm > /tmp/asm_output 2>&1
     if [ $? -ne 0 ]; then
-        echo Test ${CNT} Failed ${1}: Assembler Failed
+        echo ${RED}Test ${CNT} Failed ${1}: Assembler Failed${CLEAR}
         cat /tmp/asm_output
         echo
         return
@@ -32,7 +32,7 @@ do_test() {
 
     sh ${EMULATOR} ${1}.tst > /tmp/emulator_output 2>&1
     if [ $? -ne 0 ]; then
-        echo Test ${CNT} Failed ${1}: Emulator Failed
+        echo ${RED}Test ${CNT} Failed ${1}: Emulator Failed${CLEAR}
         cat /tmp/emulator_output
         echo
         return
@@ -41,8 +41,12 @@ do_test() {
     echo ${GREEN}Test ${CNT} OK ${1}${CLEAR}
 }
 
-echo --- Compile
+echo --- Build
 make build
+if [ $? -ne 0 ]; then
+    echo ${RED}Failed to build${CLEAR}
+    exit 1
+fi
 echo
 
 

@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"io"
 	"log"
 	"os"
 	"path/filepath"
@@ -35,6 +37,39 @@ func main() {
 	p := parser.NewParser(vmFile)
 	cw := codewriter.NewCodeWriter(asmFile)
 
-	log.Println(p.Advance())
-	log.Println(cw)
+	writeLine := func() error {
+		var err error
+		if p.CommandType() == parser.C_ARITHMETIC {
+			err = cw.WriteArithmetic(p.Arg1())
+		} else if p.CommandType() == parser.C_PUSH || p.CommandType() == parser.C_POP {
+			err = cw.WritePushPop(p.CommandType(), p.Arg1(), p.Arg2())
+		} else {
+			return fmt.Errorf("unexpected command: %s", p.CommandType())
+		}
+
+		if err != nil {
+			return fmt.Errorf("failed to write command: %s, %s, %d, %+v", p.CommandType(), p.Arg1(), p.Arg2(), err)
+		}
+		return nil
+	}
+
+	err = p.Advance()
+	if err != nil {
+		log.Fatalln(err)
+	}
+
+	for err == nil {
+		err = writeLine()
+		if err != nil {
+			continue
+		}
+
+		err = p.Advance()
+	}
+
+	if err == nil || err == io.EOF {
+		os.Exit(0)
+	} else {
+		log.Fatalln(err)
+	}
 }
