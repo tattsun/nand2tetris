@@ -1,0 +1,6 @@
+go 1.19
+
+use (
+	./project/assembler
+	./project/vm_translator
+)
