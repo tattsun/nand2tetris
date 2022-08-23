@@ -56,3 +56,11 @@ do_test ${BASEDIR}/07/StackArithmetic/StackTest/StackTest
 do_test ${BASEDIR}/07/MemoryAccess/BasicTest/BasicTest
 do_test ${BASEDIR}/07/MemoryAccess/PointerTest/PointerTest
 do_test ${BASEDIR}/07/MemoryAccess/StaticTest/StaticTest
+
+do_test ${BASEDIR}/08/ProgramFlow/BasicLoop/BasicLoop
+do_test ${BASEDIR}/08/ProgramFlow/FibonacciSeries/FibonacciSeries
+do_test ${BASEDIR}/08/FunctionCalls/SimpleFunction/SimpleFunction
+# TODO: directory対応
+do_test ${BASEDIR}/08/FunctionCalls/FibonacciElement
+do_test ${BASEDIR}/08/FunctionCalls/StaticsTest
+do_test ${BASEDIR}/08/FunctionCalls/NestedCall
