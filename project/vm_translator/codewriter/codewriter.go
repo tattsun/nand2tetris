@@ -12,7 +12,8 @@ const (
 )
 
 type CodeWriter struct {
-	w io.Writer
+	w     io.Writer
+	state int
 }
 
 func NewCodeWriter(w io.Writer) *CodeWriter {
@@ -38,55 +39,91 @@ func (w *CodeWriter) SetFileName(fileName string) {
 	panic("not implemented")
 }
 
+// Pops stack and set address to A
+func (w *CodeWriter) popStack() {
+	w.writeln("@%d", MemSP)
+	w.writeln("M=M-1") // decr stack
+	w.writeln("A=M")
+}
+
+// Pushes stack
+func (w *CodeWriter) pushStack() {
+	w.writeln("@%d", MemSP)
+	w.writeln("M=M+1") // incr stack
+}
+
+func (w *CodeWriter) compare(cmp string) {
+	w.popStack()
+	w.writeln("D=M")
+	w.popStack()
+	w.writeln("D=M-D")
+
+	w.writeln("@true_%d", w.state)
+	w.writeln("D;%s", cmp)
+
+	// if false
+	w.writeln("@%d", MemSP)
+	w.writeln("A=M")
+	w.writeln("M=0")
+	w.pushStack()
+	w.writeln("@after_%d", w.state)
+	w.writeln("0;JMP")
+
+	// if true
+	w.writeln("(true_%d)", w.state)
+	w.writeln("@%d", MemSP)
+	w.writeln("A=M")
+	w.writeln("M=-1")
+	w.pushStack()
+	w.writeln("@after_%d", w.state)
+	w.writeln("0;JMP")
+
+	w.writeln("(after_%d)", w.state)
+
+	w.state++
+}
+
 func (w *CodeWriter) WriteArithmetic(command string) error {
-	/*
-		push constant 5
-
-		// initialize SP
-		@256
-		D=A
-		@0
-		M=D
-
-		// --- push constant 5
-		@5
-		D=A
-
-		// set 5 to 256
-		@0
-		A=M
-		M=D
-		// incr stack pointer
-		@0
-		M=M+1
-
-		// add 258
-		@0
-		// decr stack pointer
-		M=M-1 // 257
-		A=M
-		D=M
-
-		// desc stack pointer
-		@0
-		M=M-1 // 256
-		A=M // a=256
-		M=M+D
-
-		//
-	*/
-
+	w.writeln("// %s", command)
 	if command == "add" {
-		w.writeln("@%d", MemSP)
-		w.writeln("M=M-1") // decr stack
-		w.writeln("A=M")
+		w.popStack()
 		w.writeln("D=M") // get stack data
-		w.writeln("@%d", MemSP)
-		w.writeln("M=M-1") // decr stack
-		w.writeln("A=M")
+		w.popStack()
 		w.writeln("M=D+M") // set stack to addded data
-		w.writeln("@%d", MemSP)
-		w.writeln("M=M+1") // incr stack
+		w.pushStack()
+	} else if command == "sub" {
+		w.popStack()
+		w.writeln("D=M") // get stack data
+		w.popStack()
+		w.writeln("M=M-D")
+		w.pushStack()
+	} else if command == "not" {
+		w.popStack()
+		w.writeln("M=!M")
+		w.pushStack()
+	} else if command == "and" {
+		w.popStack()
+		w.writeln("D=M") // get stack data
+		w.popStack()
+		w.writeln("M=D&M")
+		w.pushStack()
+	} else if command == "or" {
+		w.popStack()
+		w.writeln("D=M") // get stack data
+		w.popStack()
+		w.writeln("M=D|M")
+		w.pushStack()
+	} else if command == "neg" {
+		w.popStack()
+		w.writeln("M=!M")
+		w.writeln("M=M+1")
+		w.pushStack()
+	} else if command == "eq" {
+		w.compare("JEQ")
+	} else if command == "lt" {
+		w.compare("JLT")
+	} else if command == "gt" {
+		w.compare("JGT")
 	} else {
 		panic("not implemented")
 	}
@@ -95,6 +132,7 @@ func (w *CodeWriter) WriteArithmetic(command string) error {
 }
 
 func (w *CodeWriter) WritePushPop(command parser.CommandType, segment string, index int64) error {
+	w.writeln("// %s:%d", segment, index)
 	if command == parser.C_PUSH {
 		if segment == "constant" {
 			w.writeln("@%d", index)
@@ -102,8 +140,7 @@ func (w *CodeWriter) WritePushPop(command parser.CommandType, segment string, in
 			w.writeln("@%d", MemSP)
 			w.writeln("A=M")
 			w.writeln("M=D")
-			w.writeln("@%d", MemSP)
-			w.writeln("M=M+1")
+			w.pushStack()
 		} else {
 			panic("not implemented")
 		}

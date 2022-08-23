@@ -30,7 +30,7 @@ const (
 var commandTypeMapping = map[string]CommandType{
 	"add":      C_ARITHMETIC,
 	"sub":      C_ARITHMETIC,
-	"neq":      C_ARITHMETIC,
+	"neg":      C_ARITHMETIC,
 	"eq":       C_ARITHMETIC,
 	"gt":       C_ARITHMETIC,
 	"lt":       C_ARITHMETIC,
