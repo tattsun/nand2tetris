@@ -3,6 +3,8 @@ package codewriter
 import (
 	"fmt"
 	"io"
+	"strconv"
+	"strings"
 	"vm_translator/parser"
 )
 
@@ -12,12 +14,14 @@ const (
 )
 
 type CodeWriter struct {
-	w     io.Writer
-	state int
+	w        io.Writer
+	state    int
+	fileName string
+	cnt      int
 }
 
 func NewCodeWriter(w io.Writer) *CodeWriter {
-	cw := &CodeWriter{w: w}
+	cw := &CodeWriter{w: w, cnt: 0}
 
 	cw.writeln("@256")
 	cw.writeln("D=A")
@@ -29,14 +33,22 @@ func NewCodeWriter(w io.Writer) *CodeWriter {
 
 // panic if write failed
 func (w *CodeWriter) writeln(format string, args ...any) {
-	_, err := w.w.Write([]byte(fmt.Sprintf(format+"\n", args...)))
-	if err != nil {
-		panic(err)
+	if strings.HasPrefix(format, "//") {
+		_, err := w.w.Write([]byte(fmt.Sprintf(format+"\n", args...)))
+		if err != nil {
+			panic(err)
+		}
+	} else {
+		_, err := w.w.Write([]byte(fmt.Sprintf(format+" // "+strconv.Itoa(w.cnt)+"\n", args...)))
+		if err != nil {
+			panic(err)
+		}
+		w.cnt++
 	}
 }
 
 func (w *CodeWriter) SetFileName(fileName string) {
-	panic("not implemented")
+	w.fileName = fileName
 }
 
 // Pops stack and set address to A
@@ -132,7 +144,7 @@ func (w *CodeWriter) WriteArithmetic(command string) error {
 }
 
 func (w *CodeWriter) WritePushPop(command parser.CommandType, segment string, index int64) error {
-	w.writeln("// %s:%d", segment, index)
+	w.writeln("// %s %s:%d", command.String(), segment, index)
 	if command == parser.C_PUSH {
 		if segment == "constant" {
 			w.writeln("@%d", index)
@@ -157,6 +169,8 @@ func (w *CodeWriter) WritePushPop(command parser.CommandType, segment string, in
 			} else {
 				w.pushFromSegment("THAT", 0, true)
 			}
+		} else if segment == "static" {
+			w.pushFromSegment(fmt.Sprintf("%s.%d", w.fileName, index), 0, true)
 		} else {
 			panic("not implemented")
 		}
@@ -177,6 +191,8 @@ func (w *CodeWriter) WritePushPop(command parser.CommandType, segment string, in
 			} else {
 				w.popToSegment("THAT", 0, true)
 			}
+		} else if segment == "static" {
+			w.popToSegment(fmt.Sprintf("%s.%d", w.fileName, index), 0, true)
 		} else {
 			panic("not implemented " + command.String() + " " + segment)
 		}

@@ -36,6 +36,7 @@ func main() {
 	// Do translate
 	p := parser.NewParser(vmFile)
 	cw := codewriter.NewCodeWriter(asmFile)
+	cw.SetFileName(filepath.Base(vmFilePath))
 
 	writeLine := func() error {
 		var err error
