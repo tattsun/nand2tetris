@@ -142,29 +142,41 @@ func (w *CodeWriter) WritePushPop(command parser.CommandType, segment string, in
 			w.writeln("M=D")
 			w.pushStack()
 		} else if segment == "local" {
-			w.pushFromSegment("LCL", index)
+			w.pushFromSegment("LCL", index, false)
 		} else if segment == "argument" {
-			w.pushFromSegment("ARG", index)
+			w.pushFromSegment("ARG", index, false)
 		} else if segment == "this" {
-			w.pushFromSegment("THIS", index)
+			w.pushFromSegment("THIS", index, false)
 		} else if segment == "that" {
-			w.pushFromSegment("THAT", index)
+			w.pushFromSegment("THAT", index, false)
 		} else if segment == "temp" {
-			w.pushFromSegment("R5", index)
+			w.pushFromSegment("R5", index, true)
+		} else if segment == "pointer" {
+			if index == 0 {
+				w.pushFromSegment("THIS", 0, true)
+			} else {
+				w.pushFromSegment("THAT", 0, true)
+			}
 		} else {
 			panic("not implemented")
 		}
 	} else if command == parser.C_POP {
 		if segment == "local" {
-			w.popToSegment("LCL", index)
+			w.popToSegment("LCL", index, false)
 		} else if segment == "argument" {
-			w.popToSegment("ARG", index)
+			w.popToSegment("ARG", index, false)
 		} else if segment == "this" {
-			w.popToSegment("THIS", index)
+			w.popToSegment("THIS", index, false)
 		} else if segment == "that" {
-			w.popToSegment("THAT", index)
+			w.popToSegment("THAT", index, false)
 		} else if segment == "temp" {
-			w.popToSegment("R5", index)
+			w.popToSegment("R5", index, true)
+		} else if segment == "pointer" {
+			if index == 0 {
+				w.popToSegment("THIS", 0, true)
+			} else {
+				w.popToSegment("THAT", 0, true)
+			}
 		} else {
 			panic("not implemented " + command.String() + " " + segment)
 		}
@@ -175,10 +187,10 @@ func (w *CodeWriter) WritePushPop(command parser.CommandType, segment string, in
 	return nil
 }
 
-func (w *CodeWriter) pushFromSegment(seg string, index int64) {
+func (w *CodeWriter) pushFromSegment(seg string, index int64, direct bool) {
 	// load segment data to D
-	if seg == "R5" {
-		w.writeln("@5")
+	if direct {
+		w.writeln("@%s", seg)
 		w.writeln("D=A")
 	} else {
 		w.writeln("@%s", seg)
@@ -198,10 +210,10 @@ func (w *CodeWriter) pushFromSegment(seg string, index int64) {
 	w.pushStack()
 }
 
-func (w *CodeWriter) popToSegment(seg string, index int64) {
+func (w *CodeWriter) popToSegment(seg string, index int64, direct bool) {
 	// set segment address to R13
-	if seg == "R5" {
-		w.writeln("@5")
+	if direct {
+		w.writeln("@%s", seg)
 		w.writeln("D=A")
 	} else {
 		w.writeln("@%s", seg)
