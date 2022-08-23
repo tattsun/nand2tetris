@@ -141,14 +141,83 @@ func (w *CodeWriter) WritePushPop(command parser.CommandType, segment string, in
 			w.writeln("A=M")
 			w.writeln("M=D")
 			w.pushStack()
+		} else if segment == "local" {
+			w.pushFromSegment("LCL", index)
+		} else if segment == "argument" {
+			w.pushFromSegment("ARG", index)
+		} else if segment == "this" {
+			w.pushFromSegment("THIS", index)
+		} else if segment == "that" {
+			w.pushFromSegment("THAT", index)
+		} else if segment == "temp" {
+			w.pushFromSegment("R5", index)
 		} else {
 			panic("not implemented")
 		}
 	} else if command == parser.C_POP {
-		panic("not implemented")
+		if segment == "local" {
+			w.popToSegment("LCL", index)
+		} else if segment == "argument" {
+			w.popToSegment("ARG", index)
+		} else if segment == "this" {
+			w.popToSegment("THIS", index)
+		} else if segment == "that" {
+			w.popToSegment("THAT", index)
+		} else if segment == "temp" {
+			w.popToSegment("R5", index)
+		} else {
+			panic("not implemented " + command.String() + " " + segment)
+		}
 	} else {
 		return fmt.Errorf("expected PUSH/POP but got: %s", command)
 	}
 
 	return nil
+}
+
+func (w *CodeWriter) pushFromSegment(seg string, index int64) {
+	// load segment data to D
+	if seg == "R5" {
+		w.writeln("@5")
+		w.writeln("D=A")
+	} else {
+		w.writeln("@%s", seg)
+		w.writeln("D=M")
+	}
+
+	w.writeln("@%d", index)
+	w.writeln("D=D+A")
+
+	w.writeln("A=D")
+	w.writeln("D=M")
+
+	// push D to stack
+	w.writeln("@SP")
+	w.writeln("A=M")
+	w.writeln("M=D")
+	w.pushStack()
+}
+
+func (w *CodeWriter) popToSegment(seg string, index int64) {
+	// set segment address to R13
+	if seg == "R5" {
+		w.writeln("@5")
+		w.writeln("D=A")
+	} else {
+		w.writeln("@%s", seg)
+		w.writeln("D=M")
+	}
+	w.writeln("@%d", index)
+	w.writeln("D=D+A")
+
+	w.writeln("@R13")
+	w.writeln("M=D")
+
+	// pop data to segment from stack
+	w.popStack()
+	w.writeln("D=M")
+
+	w.writeln("@R13")
+	w.writeln("A=M")
+	w.writeln("M=D")
 }
