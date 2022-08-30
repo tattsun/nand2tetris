@@ -7,9 +7,13 @@ EMULATOR=${TOOL_DIR}/CPUEmulator.sh
 
 CNT=0
 
-RED="\e[31m"
-GREEN="\e[32m"
-CLEAR="\e[m"
+# RED="\e[31m"
+# GREEN="\e[32m"
+# CLEAR="\e[m"
+
+RED=""
+GREEN=""
+CLEAR=""
 
 do_test() {
     CNT=$(( ${CNT}+1 ))
