@@ -256,6 +256,8 @@ func (w *CodeWriter) WriteInit() error {
 	w.writeln("D=A")
 	w.writeln("@SP")
 	w.writeln("M=D")
+	w.writeln("@Sys.init")
+	w.writeln("0;JMP")
 
 	return nil
 }
@@ -369,7 +371,7 @@ func (w *CodeWriter) WriteReturn() error {
 
 func (w *CodeWriter) WriteFunction(functionName string, numLocals int64) error {
 	w.writeln("// function %s %d", functionName, numLocals)
-	w.writeln("(%s.%s)", w.fileName, functionName)
+	w.writeln("(%s)", functionName)
 	for i := int64(0); i < numLocals; i++ {
 		w.writeln("@0")
 		w.writeln("D=A")
@@ -378,5 +380,25 @@ func (w *CodeWriter) WriteFunction(functionName string, numLocals int64) error {
 		w.writeln("M=D")
 		w.pushStack()
 	}
+	return nil
+}
+
+func (w *CodeWriter) WriteCall(functionName string, numArgs int64) error {
+	w.writeln("// call %s %d", functionName, numArgs)
+	w.writeln("@%s", functionName)
+	w.writeln("D=A")
+	w.pushStack()
+	w.writeln("@%d", numArgs)
+	w.writeln("D=D+A")
+	w.writeln("@SP")
+	w.writeln("D=M-D")
+	w.writeln("@ARG")
+	w.writeln("M=D")
+	w.writeln("@SP")
+	w.writeln("D=M")
+	w.writeln("@LCL")
+	w.writeln("M=D")
+	w.writeln("@%s", functionName)
+	w.writeln("0;JMP")
 	return nil
 }

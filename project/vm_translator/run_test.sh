@@ -15,31 +15,51 @@ RED=""
 GREEN=""
 CLEAR=""
 
+do_test_directory() {
+        CNT=$(( ${CNT}+1 ))
+
+    ISDIR=${2}
+
+    ${TRANSLATOR} ${1} > /tmp/translator_output 2>&1
+    if [ $? -ne 0 ]; then
+        echo ${RED}Test ${CNT} Failed ${1}: Translator Failed${CLEAR}
+        cat /tmp/translator_output
+        echo
+        return
+    fi
+
+    ${ASSEMBLER} ${1}/$(basename $1).asm > /tmp/asm_output 2>&1
+    if [ $? -ne 0 ]; then
+        echo ${RED}Test ${CNT} Failed ${1}: Assembler Failed${CLEAR}
+        cat /tmp/asm_output
+        echo
+        return
+    fi
+
+    sh ${EMULATOR} ${1}/$(basename $1).tst > /tmp/emulator_output 2>&1
+    if [ $? -ne 0 ]; then
+        echo ${RED}Test ${CNT} Failed ${1}: Emulator Failed${CLEAR}
+        cat /tmp/emulator_output
+        echo
+        return
+    fi
+
+    echo ${GREEN}Test ${CNT} OK ${1}${CLEAR}
+}
+
 do_test() {
     CNT=$(( ${CNT}+1 ))
 
     ISDIR=${2}
 
-    if [ "${ISDIR}" != "" ]; then
-        ${TRANSLATOR} ${1} > /tmp/translator_output 2>&1
-        if [ $? -ne 0 ]; then
-            echo ${RED}Test ${CNT} Failed ${1}: Translator Failed${CLEAR}
-            cat /tmp/translator_output
-            echo
-            return
-        fi
-    else
-        ${TRANSLATOR} ${1}.vm > /tmp/translator_output 2>&1
-        if [ $? -ne 0 ]; then
-            echo ${RED}Test ${CNT} Failed ${1}: Translator Failed${CLEAR}
-            cat /tmp/translator_output
-            echo
-            return
-        fi
+    ${TRANSLATOR} ${1}.vm > /tmp/translator_output 2>&1
+    if [ $? -ne 0 ]; then
+        echo ${RED}Test ${CNT} Failed ${1}: Translator Failed${CLEAR}
+        cat /tmp/translator_output
+        echo
+        return
     fi
-
     
-
     ${ASSEMBLER} ${1}.asm > /tmp/asm_output 2>&1
     if [ $? -ne 0 ]; then
         echo ${RED}Test ${CNT} Failed ${1}: Assembler Failed${CLEAR}
@@ -79,6 +99,6 @@ do_test ${BASEDIR}/08/ProgramFlow/BasicLoop/BasicLoop
 do_test ${BASEDIR}/08/ProgramFlow/FibonacciSeries/FibonacciSeries
 do_test ${BASEDIR}/08/FunctionCalls/SimpleFunction/SimpleFunction
 # TODO: directory対応
-do_test ${BASEDIR}/08/FunctionCalls/FibonacciElement true
-do_test ${BASEDIR}/08/FunctionCalls/StaticsTest true
-do_test ${BASEDIR}/08/FunctionCalls/NestedCall true
+do_test_directory ${BASEDIR}/08/FunctionCalls/FibonacciElement
+do_test_directory ${BASEDIR}/08/FunctionCalls/StaticsTest
+do_test_directory ${BASEDIR}/08/FunctionCalls/NestedCall

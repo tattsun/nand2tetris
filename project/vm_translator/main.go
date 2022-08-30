@@ -65,10 +65,14 @@ func main() {
 
 	cw := codewriter.NewCodeWriter(asmFile)
 
+	if isDirectory(os.Args[1]) {
+		cw.WriteInit()
+	}
+
 	for _, file := range files {
 		vmFile, err := os.Open(file)
 		if err != nil {
-			log.Fatalf("failed to open %s", file)
+			log.Fatalf("failed to open vm file %s", file)
 		}
 		defer vmFile.Close()
 
@@ -91,6 +95,8 @@ func main() {
 				err = cw.WriteFunction(p.Arg1(), p.Arg2())
 			} else if p.CommandType() == parser.C_RETURN {
 				err = cw.WriteReturn()
+			} else if p.CommandType() == parser.C_CALL {
+				err = cw.WriteCall(p.Arg1(), p.Arg2())
 			} else {
 				return fmt.Errorf("unexpected command: %s", p.CommandType())
 			}
