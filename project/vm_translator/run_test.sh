@@ -99,6 +99,7 @@ do_test ${BASEDIR}/08/ProgramFlow/BasicLoop/BasicLoop
 do_test ${BASEDIR}/08/ProgramFlow/FibonacciSeries/FibonacciSeries
 do_test ${BASEDIR}/08/FunctionCalls/SimpleFunction/SimpleFunction
 # TODO: directory対応
+do_test_directory ${BASEDIR}/08/FunctionCalls/Test1
 do_test_directory ${BASEDIR}/08/FunctionCalls/FibonacciElement
 do_test_directory ${BASEDIR}/08/FunctionCalls/StaticsTest
 do_test_directory ${BASEDIR}/08/FunctionCalls/NestedCall

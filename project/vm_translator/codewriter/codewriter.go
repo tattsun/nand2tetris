@@ -14,11 +14,12 @@ const (
 )
 
 type CodeWriter struct {
-	w        io.Writer
-	state    int
-	fileName string
-	cnt      int
-	retCnt   int
+	w            io.Writer
+	state        int
+	fileName     string
+	cnt          int
+	retCnt       int
+	functionName string
 }
 
 func NewCodeWriter(w io.Writer) *CodeWriter {
@@ -257,21 +258,20 @@ func (w *CodeWriter) WriteInit() error {
 	w.writeln("D=A")
 	w.writeln("@SP")
 	w.writeln("M=D")
-	w.writeln("@Sys.init")
-	w.writeln("0;JMP")
+	w.WriteCall("Sys.init", 0)
 
 	return nil
 }
 
 func (w *CodeWriter) WriteLabel(label string) error {
 	w.writeln("// label %s", label)
-	w.writeln("(%s.%s)", w.fileName, label)
+	w.writeln("(%s$%s)", w.functionName, label)
 	return nil
 }
 
 func (w *CodeWriter) WriteGoto(label string) error {
 	w.writeln("// goto %s", label)
-	w.writeln("@%s.%s", w.fileName, label)
+	w.writeln("@%s$%s", w.functionName, label)
 	w.writeln("0;JMP")
 	return nil
 }
@@ -280,7 +280,7 @@ func (w *CodeWriter) WriteIf(label string) error {
 	w.writeln("// if-goto %s", label)
 	w.popStack()
 	w.writeln("D=M")
-	w.writeln("@%s.%s", w.fileName, label)
+	w.writeln("@%s$%s", w.functionName, label)
 	w.writeln("D;JNE")
 	return nil
 }
@@ -372,6 +372,7 @@ func (w *CodeWriter) WriteReturn() error {
 
 func (w *CodeWriter) WriteFunction(functionName string, numLocals int64) error {
 	w.writeln("// function %s %d", functionName, numLocals)
+	w.functionName = functionName
 	w.writeln("(%s)", functionName)
 	for i := int64(0); i < numLocals; i++ {
 		w.writeln("@0")
@@ -427,6 +428,25 @@ func (w *CodeWriter) WriteCall(functionName string, numArgs int64) error {
 	w.writeln("A=M")
 	w.writeln("M=D")
 	w.pushStack()
+
+	// ARG = SP-n-5
+	w.writeln("@%d", MemSP)
+	w.writeln("D=M")
+	w.writeln("@%d", numArgs)
+	w.writeln("D=D-A")
+	w.writeln("@5")
+	w.writeln("D=D-A")
+	w.writeln("@ARG")
+	w.writeln("M=D")
+
+	// LCL = SP
+	w.writeln("@%d", MemSP)
+	w.writeln("D=M")
+	w.writeln("@LCL")
+	w.writeln("M=D")
+
+	w.writeln("@%s", functionName)
+	w.writeln("0;JMP")
 
 	w.writeln("(return.%d)", w.retCnt)
 
