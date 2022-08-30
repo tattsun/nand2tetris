@@ -18,13 +18,27 @@ CLEAR=""
 do_test() {
     CNT=$(( ${CNT}+1 ))
 
-    ${TRANSLATOR} ${1}.vm > /tmp/translator_output 2>&1
-    if [ $? -ne 0 ]; then
-        echo ${RED}Test ${CNT} Failed ${1}: Translator Failed${CLEAR}
-        cat /tmp/translator_output
-        echo
-        return
+    ISDIR=${2}
+
+    if [ "${ISDIR}" != "" ]; then
+        ${TRANSLATOR} ${1} > /tmp/translator_output 2>&1
+        if [ $? -ne 0 ]; then
+            echo ${RED}Test ${CNT} Failed ${1}: Translator Failed${CLEAR}
+            cat /tmp/translator_output
+            echo
+            return
+        fi
+    else
+        ${TRANSLATOR} ${1}.vm > /tmp/translator_output 2>&1
+        if [ $? -ne 0 ]; then
+            echo ${RED}Test ${CNT} Failed ${1}: Translator Failed${CLEAR}
+            cat /tmp/translator_output
+            echo
+            return
+        fi
     fi
+
+    
 
     ${ASSEMBLER} ${1}.asm > /tmp/asm_output 2>&1
     if [ $? -ne 0 ]; then
@@ -65,6 +79,6 @@ do_test ${BASEDIR}/08/ProgramFlow/BasicLoop/BasicLoop
 do_test ${BASEDIR}/08/ProgramFlow/FibonacciSeries/FibonacciSeries
 do_test ${BASEDIR}/08/FunctionCalls/SimpleFunction/SimpleFunction
 # TODO: directory対応
-do_test ${BASEDIR}/08/FunctionCalls/FibonacciElement
-do_test ${BASEDIR}/08/FunctionCalls/StaticsTest
-do_test ${BASEDIR}/08/FunctionCalls/NestedCall
+do_test ${BASEDIR}/08/FunctionCalls/FibonacciElement true
+do_test ${BASEDIR}/08/FunctionCalls/StaticsTest true
+do_test ${BASEDIR}/08/FunctionCalls/NestedCall true
