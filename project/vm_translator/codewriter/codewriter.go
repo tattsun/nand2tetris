@@ -18,6 +18,7 @@ type CodeWriter struct {
 	state    int
 	fileName string
 	cnt      int
+	retCnt   int
 }
 
 func NewCodeWriter(w io.Writer) *CodeWriter {
@@ -385,20 +386,49 @@ func (w *CodeWriter) WriteFunction(functionName string, numLocals int64) error {
 
 func (w *CodeWriter) WriteCall(functionName string, numArgs int64) error {
 	w.writeln("// call %s %d", functionName, numArgs)
-	w.writeln("@%s", functionName)
+	w.retCnt++
+
+	// push return address
+	w.writeln("@return.%d", w.retCnt)
 	w.writeln("D=A")
+	w.writeln("@%d", MemSP)
+	w.writeln("A=M")
+	w.writeln("M=D")
 	w.pushStack()
-	w.writeln("@%d", numArgs)
-	w.writeln("D=D+A")
-	w.writeln("@SP")
-	w.writeln("D=M-D")
-	w.writeln("@ARG")
-	w.writeln("M=D")
-	w.writeln("@SP")
-	w.writeln("D=M")
+
+	// push LCL
 	w.writeln("@LCL")
+	w.writeln("D=M")
+	w.writeln("@%d", MemSP)
+	w.writeln("A=M")
 	w.writeln("M=D")
-	w.writeln("@%s", functionName)
-	w.writeln("0;JMP")
+	w.pushStack()
+
+	// push ARG
+	w.writeln("@ARG")
+	w.writeln("D=M")
+	w.writeln("@%d", MemSP)
+	w.writeln("A=M")
+	w.writeln("M=D")
+	w.pushStack()
+
+	// push THIS
+	w.writeln("@THIS")
+	w.writeln("D=M")
+	w.writeln("@%d", MemSP)
+	w.writeln("A=M")
+	w.writeln("M=D")
+	w.pushStack()
+
+	// push THAT
+	w.writeln("@THAT")
+	w.writeln("D=M")
+	w.writeln("@%d", MemSP)
+	w.writeln("A=M")
+	w.writeln("M=D")
+	w.pushStack()
+
+	w.writeln("(return.%d)", w.retCnt)
+
 	return nil
 }
