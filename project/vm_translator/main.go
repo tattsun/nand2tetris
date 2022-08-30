@@ -36,6 +36,10 @@ func main() {
 	// Do translate
 	p := parser.NewParser(vmFile)
 	cw := codewriter.NewCodeWriter(asmFile)
+	// if err := cw.WriteInit(); err != nil {
+	// 	log.Fatalf("failed to write init: %s", err)
+	// }
+
 	cw.SetFileName(filepath.Base(vmFilePath))
 
 	writeLine := func() error {
@@ -44,6 +48,16 @@ func main() {
 			err = cw.WriteArithmetic(p.Arg1())
 		} else if p.CommandType() == parser.C_PUSH || p.CommandType() == parser.C_POP {
 			err = cw.WritePushPop(p.CommandType(), p.Arg1(), p.Arg2())
+		} else if p.CommandType() == parser.C_LABEL {
+			err = cw.WriteLabel(p.Arg1())
+		} else if p.CommandType() == parser.C_GOTO {
+			err = cw.WriteGoto(p.Arg1())
+		} else if p.CommandType() == parser.C_IF {
+			err = cw.WriteIf(p.Arg1())
+		} else if p.CommandType() == parser.C_FUNCTION {
+			err = cw.WriteFunction(p.Arg1(), p.Arg2())
+		} else if p.CommandType() == parser.C_RETURN {
+			err = cw.WriteReturn()
 		} else {
 			return fmt.Errorf("unexpected command: %s", p.CommandType())
 		}

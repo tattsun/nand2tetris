@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"strconv"
+	"strings"
 )
 
 var (
@@ -130,7 +131,7 @@ func getOrEmpty(arr []string, i int) string {
 		return ""
 	}
 
-	return arr[i]
+	return strings.TrimSpace(arr[i])
 }
 
 func splitIntoParts(str string) []string {

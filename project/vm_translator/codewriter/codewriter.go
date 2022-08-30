@@ -23,17 +23,17 @@ type CodeWriter struct {
 func NewCodeWriter(w io.Writer) *CodeWriter {
 	cw := &CodeWriter{w: w, cnt: 0}
 
-	cw.writeln("@256")
-	cw.writeln("D=A")
-	cw.writeln("@%d", MemSP)
-	cw.writeln("M=D")
+	// cw.writeln("@256")
+	// cw.writeln("D=A")
+	// cw.writeln("@%d", MemSP)
+	// cw.writeln("M=D")
 
 	return cw
 }
 
 // panic if write failed
 func (w *CodeWriter) writeln(format string, args ...any) {
-	if strings.HasPrefix(format, "//") {
+	if strings.HasPrefix(format, "//") || strings.HasPrefix(format, "(") {
 		_, err := w.w.Write([]byte(fmt.Sprintf(format+"\n", args...)))
 		if err != nil {
 			panic(err)
@@ -248,4 +248,135 @@ func (w *CodeWriter) popToSegment(seg string, index int64, direct bool) {
 	w.writeln("@R13")
 	w.writeln("A=M")
 	w.writeln("M=D")
+}
+
+func (w *CodeWriter) WriteInit() error {
+	w.writeln("// init")
+	w.writeln("@256")
+	w.writeln("D=A")
+	w.writeln("@SP")
+	w.writeln("M=D")
+
+	return nil
+}
+
+func (w *CodeWriter) WriteLabel(label string) error {
+	w.writeln("// label %s", label)
+	w.writeln("(%s.%s)", w.fileName, label)
+	return nil
+}
+
+func (w *CodeWriter) WriteGoto(label string) error {
+	w.writeln("// goto %s", label)
+	w.writeln("@%s.%s", w.fileName, label)
+	w.writeln("0;JMP")
+	return nil
+}
+
+func (w *CodeWriter) WriteIf(label string) error {
+	w.writeln("// if-goto %s", label)
+	w.popStack()
+	w.writeln("D=M")
+	w.writeln("@%s.%s", w.fileName, label)
+	w.writeln("D;JNE")
+	return nil
+}
+
+func (w *CodeWriter) WriteReturn() error {
+	w.writeln("// return")
+	// R13 = FRAME = LCL
+	// R14 = RET = FRAME - 5
+	// R15 = return value
+
+	// Save FRAME address to R13
+	w.writeln("@LCL")
+	w.writeln("D=M")
+	w.writeln("@R13")
+	w.writeln("M=D")
+
+	// Save return address to R14
+	w.writeln("@R13")
+	w.writeln("D=M")
+	w.writeln("@5")
+	w.writeln("D=D-A")
+	w.writeln("A=D")
+	w.writeln("D=M")
+	w.writeln("@R14")
+	w.writeln("M=D")
+
+	// *ARG = pop()
+	w.popStack()
+	w.writeln("D=M")
+	w.writeln("@ARG")
+	w.writeln("A=M")
+	w.writeln("M=D")
+
+	// SP = ARG + 1
+	w.writeln("@ARG")
+	w.writeln("D=M")
+	w.writeln("@1")
+	w.writeln("D=D+A")
+	w.writeln("@SP")
+	w.writeln("M=D")
+
+	// THAT = FRAME - 1
+	w.writeln("@R13")
+	w.writeln("D=M")
+	w.writeln("@1")
+	w.writeln("D=D-A")
+	w.writeln("A=D")
+	w.writeln("D=M")
+	w.writeln("@THAT")
+	w.writeln("M=D")
+
+	// THIS = FRAME - 2
+	w.writeln("@R13")
+	w.writeln("D=M")
+	w.writeln("@2")
+	w.writeln("D=D-A")
+	w.writeln("A=D")
+	w.writeln("D=M")
+	w.writeln("@THIS")
+	w.writeln("M=D")
+
+	// ARG = FRAME - 3
+	w.writeln("@R13")
+	w.writeln("D=M")
+	w.writeln("@3")
+	w.writeln("D=D-A")
+	w.writeln("A=D")
+	w.writeln("D=M")
+	w.writeln("@ARG")
+	w.writeln("M=D")
+
+	// LCL = FRAME - 4
+	w.writeln("@R13")
+	w.writeln("D=M")
+	w.writeln("@4")
+	w.writeln("D=D-A")
+	w.writeln("A=D")
+	w.writeln("D=M")
+	w.writeln("@LCL")
+	w.writeln("M=D")
+
+	// goto RET
+	w.writeln("@R14")
+	w.writeln("A=M")
+	w.writeln("0;JMP")
+
+	return nil
+}
+
+func (w *CodeWriter) WriteFunction(functionName string, numLocals int64) error {
+	w.writeln("// function %s %d", functionName, numLocals)
+	w.writeln("(%s.%s)", w.fileName, functionName)
+	for i := int64(0); i < numLocals; i++ {
+		w.writeln("@0")
+		w.writeln("D=A")
+		w.writeln("@%d", MemSP)
+		w.writeln("A=M")
+		w.writeln("M=D")
+		w.pushStack()
+	}
+	return nil
 }
