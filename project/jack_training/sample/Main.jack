@@ -1,0 +1,13 @@
+class Main {
+    function void main() {
+        var String input;
+
+        do Output.printString("Hello, world");
+        do Output.println();
+
+        let input = Keyboard.readLine("Input: ");
+
+        do Output.printString(input);
+        return;
+    }
+}
