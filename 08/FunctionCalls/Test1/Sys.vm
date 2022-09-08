@@ -1,0 +1,6 @@
+function Sys.init 0
+push constant 100
+push constant 123
+call Main.add 2
+label WHILE
+goto WHILE
