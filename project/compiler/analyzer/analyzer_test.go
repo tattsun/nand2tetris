@@ -33,7 +33,7 @@ func TestTokenizer(t *testing.T) {
 
 	for _, testName := range testNames {
 		analyzer := NewAnalyzer()
-		err := analyzer.Analyze(filepath.Join(targetDirBase, testName))
+		err := analyzer.Tokenize(filepath.Join(targetDirBase, testName))
 		assert.Nil(err)
 
 		// compare outputs

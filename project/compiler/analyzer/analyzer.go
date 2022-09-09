@@ -1,6 +1,7 @@
 package analyzer
 
 import (
+	compilationengine "compiler/compilation_engine"
 	"compiler/tokenizer"
 	"compiler/utils"
 	"fmt"
@@ -30,6 +31,34 @@ func NewAnalyzer() *Analyzer {
 }
 
 func (a *Analyzer) Analyze(path string) error {
+	paths, err := utils.GetFilePathsInDir(path)
+	if err != nil {
+		return err
+	}
+
+	for _, path := range paths {
+		if IsJackFile(path) {
+			f, err := os.Open(path)
+			if err != nil {
+				return errors.Wrapf(err, "failed to open file: %s", path)
+			}
+			defer f.Close()
+
+			tf, err := os.Create(GetTokenFilePath(path))
+			if err != nil {
+				return errors.Wrapf(err, "failed to open file: %s", path)
+			}
+			defer tf.Close()
+
+			compilationEngine := compilationengine.NewCompilationEngine(f, tf)
+			compilationEngine.CompileClass()
+		}
+	}
+
+	return nil
+}
+
+func (a *Analyzer) Tokenize(path string) error {
 	paths, err := utils.GetFilePathsInDir(path)
 	if err != nil {
 		return err

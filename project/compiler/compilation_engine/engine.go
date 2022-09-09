@@ -1,16 +1,19 @@
 package compilationengine
 
-import "io"
+import (
+	"compiler/tokenizer"
+	"io"
+)
 
 type CompilationEngine struct {
-	r io.Reader
-	w io.Writer
+	tokenizer *tokenizer.Tokenizer
+	w         io.Writer
 }
 
 func NewCompilationEngine(r io.Reader, w io.Writer) *CompilationEngine {
 	return &CompilationEngine{
-		r: r,
-		w: w,
+		tokenizer: tokenizer.NewTokenizer(r),
+		w:         w,
 	}
 }
 
