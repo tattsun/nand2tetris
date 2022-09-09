@@ -4,6 +4,7 @@ import (
 	"compiler/utils"
 	"fmt"
 	"io"
+	"strconv"
 )
 
 type tokenInfo struct {
@@ -11,6 +12,8 @@ type tokenInfo struct {
 	Identifier string
 	Keyword    string
 	Symbol     byte
+	IntVal     int
+	StringVal  string
 }
 
 type Tokenizer struct {
@@ -72,6 +75,67 @@ func (t *Tokenizer) readToken() *tokenInfo {
 			return &tokenInfo{
 				TokenType: "SYMBOL",
 				Symbol:    buf[0],
+			}
+		}
+
+		// integer constant
+		if IsNumber(buf[0]) {
+			token += string(buf[0])
+			for {
+				la, ok := t.r.Lookahead()
+				if !ok {
+					break
+				}
+
+				if IsNumber(la) {
+					utils.Must2(t.r.Read(buf))
+					token += string(buf[0])
+				} else {
+					break
+				}
+			}
+
+			// check whether integer is valid (0 <= x <= 32767)
+			i, err := strconv.ParseInt(token, 10, 64)
+			if err != nil {
+				panic(fmt.Sprintf("invalid number: %s, %+v", token, err))
+			}
+			if i < 0 || 32767 < i {
+				panic(fmt.Sprintf("invalid number: %s, overflow", token))
+			}
+
+			return &tokenInfo{
+				TokenType: "INT_CONST",
+				IntVal:    int(i),
+			}
+		}
+
+		// string constant
+		if buf[0] == byte('"') {
+			token := ""
+
+			for {
+				la, ok := t.r.Lookahead()
+				if !ok {
+					panic("string isn't finished")
+				}
+
+				if la == byte('\n') {
+					panic("string cannot contain linebreak '\n'")
+				}
+
+				if la == byte('"') {
+					utils.Must2(t.r.Read(buf))
+					break
+				}
+
+				utils.Must2(t.r.Read(buf))
+				token += string(buf[0])
+			}
+
+			return &tokenInfo{
+				TokenType: "STR_CONST",
+				StringVal: token,
 			}
 		}
 
@@ -187,9 +251,9 @@ func (t *Tokenizer) Identifier() string {
 }
 
 func (t *Tokenizer) IntVal() int {
-	panic("not implemented")
+	return t.currentToken.IntVal
 }
 
 func (t *Tokenizer) StringVal() string {
-	panic("not implemented")
+	return t.currentToken.StringVal
 }

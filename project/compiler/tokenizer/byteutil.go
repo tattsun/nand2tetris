@@ -37,9 +37,12 @@ func IsAlpha(b byte) bool {
 	return lowerAlphabet || upperAlphabet
 }
 
+func IsNumber(b byte) bool {
+	return '0' <= b && b <= '9'
+}
+
 func IsAlnum(b byte) bool {
-	number := '0' <= b && b <= '9'
-	return IsAlpha(b) || number
+	return IsAlpha(b) || IsNumber(b)
 }
 
 func IsUnderscore(b byte) bool {
