@@ -66,8 +66,11 @@ func (t *Tokenizer) readToken() *tokenInfo {
 
 		// skip comments
 		if buf[0] == '/' {
-			t.skipComment()
-			continue
+			la, ok := t.r.Lookahead()
+			if ok && (la == '/' || la == '*') {
+				t.skipComment()
+				continue
+			}
 		}
 
 		// symbol
@@ -134,7 +137,7 @@ func (t *Tokenizer) readToken() *tokenInfo {
 			}
 
 			return &tokenInfo{
-				TokenType: "STR_CONST",
+				TokenType: "STRING_CONST",
 				StringVal: token,
 			}
 		}
@@ -148,8 +151,8 @@ func (t *Tokenizer) readToken() *tokenInfo {
 				if !ok {
 					if IsKeyword(token) {
 						return &tokenInfo{
-							TokenType:  "KEYWORD",
-							Identifier: token,
+							TokenType: "KEYWORD",
+							Keyword:   token,
 						}
 					}
 					return &tokenInfo{
@@ -165,8 +168,8 @@ func (t *Tokenizer) readToken() *tokenInfo {
 				} else {
 					if IsKeyword(token) {
 						return &tokenInfo{
-							TokenType:  "KEYWORD",
-							Identifier: token,
+							TokenType: "KEYWORD",
+							Keyword:   token,
 						}
 					}
 					return &tokenInfo{
@@ -227,6 +230,7 @@ func (t *Tokenizer) skipComment() {
 				}
 
 				if b == '/' {
+					utils.Must2(t.r.Read(buf))
 					return
 				}
 			}
@@ -242,8 +246,15 @@ func (t *Tokenizer) KeyWord() string {
 	return t.currentToken.Keyword
 }
 
-func (t *Tokenizer) Symbol() byte {
-	return t.currentToken.Symbol
+func (t *Tokenizer) Symbol() string {
+	if t.currentToken.Symbol == '<' {
+		return "&lt;"
+	} else if t.currentToken.Symbol == '>' {
+		return "&gt;"
+	} else if t.currentToken.Symbol == '&' {
+		return "&amp;"
+	}
+	return string(t.currentToken.Symbol)
 }
 
 func (t *Tokenizer) Identifier() string {

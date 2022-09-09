@@ -69,7 +69,7 @@ hoge
 	assert.True(tokenizer.HasMoreTokens())
 	tokenizer.Advance()
 	assert.Equal("KEYWORD", tokenizer.TokenType())
-	assert.Equal("constructor", tokenizer.Identifier())
+	assert.Equal("constructor", tokenizer.KeyWord())
 
 	assert.True(tokenizer.HasMoreTokens())
 	tokenizer.Advance()
@@ -79,7 +79,7 @@ hoge
 	assert.True(tokenizer.HasMoreTokens())
 	tokenizer.Advance()
 	assert.Equal("KEYWORD", tokenizer.TokenType())
-	assert.Equal("function", tokenizer.Identifier())
+	assert.Equal("function", tokenizer.KeyWord())
 
 	assert.False(tokenizer.HasMoreTokens())
 }
@@ -100,7 +100,7 @@ a + b = c
 	assert.True(tokenizer.HasMoreTokens())
 	tokenizer.Advance()
 	assert.Equal("SYMBOL", tokenizer.TokenType())
-	assert.Equal(byte('+'), tokenizer.Symbol())
+	assert.Equal("+", tokenizer.Symbol())
 
 	assert.True(tokenizer.HasMoreTokens())
 	tokenizer.Advance()
@@ -110,7 +110,43 @@ a + b = c
 	assert.True(tokenizer.HasMoreTokens())
 	tokenizer.Advance()
 	assert.Equal("SYMBOL", tokenizer.TokenType())
-	assert.Equal(byte('='), tokenizer.Symbol())
+	assert.Equal("=", tokenizer.Symbol())
+
+	assert.True(tokenizer.HasMoreTokens())
+	tokenizer.Advance()
+	assert.Equal("IDENTIFIER", tokenizer.TokenType())
+	assert.Equal("c", tokenizer.Identifier())
+
+	assert.False(tokenizer.HasMoreTokens())
+}
+
+func TestTokenizer_Symbol_Divider(t *testing.T) {
+	assert := assert.New(t)
+
+	buf := bytes.NewBufferString(`
+a / b = c
+`)
+	tokenizer := NewTokenizer(buf)
+
+	assert.True(tokenizer.HasMoreTokens())
+	tokenizer.Advance()
+	assert.Equal("IDENTIFIER", tokenizer.TokenType())
+	assert.Equal("a", tokenizer.Identifier())
+
+	assert.True(tokenizer.HasMoreTokens())
+	tokenizer.Advance()
+	assert.Equal("SYMBOL", tokenizer.TokenType())
+	assert.Equal("/", tokenizer.Symbol())
+
+	assert.True(tokenizer.HasMoreTokens())
+	tokenizer.Advance()
+	assert.Equal("IDENTIFIER", tokenizer.TokenType())
+	assert.Equal("b", tokenizer.Identifier())
+
+	assert.True(tokenizer.HasMoreTokens())
+	tokenizer.Advance()
+	assert.Equal("SYMBOL", tokenizer.TokenType())
+	assert.Equal("=", tokenizer.Symbol())
 
 	assert.True(tokenizer.HasMoreTokens())
 	tokenizer.Advance()
@@ -136,7 +172,7 @@ func TestTokenizer_IntegerConst(t *testing.T) {
 	assert.True(tokenizer.HasMoreTokens())
 	tokenizer.Advance()
 	assert.Equal("SYMBOL", tokenizer.TokenType())
-	assert.Equal(byte('+'), tokenizer.Symbol())
+	assert.Equal("+", tokenizer.Symbol())
 
 	assert.True(tokenizer.HasMoreTokens())
 	tokenizer.Advance()
@@ -146,7 +182,7 @@ func TestTokenizer_IntegerConst(t *testing.T) {
 	assert.True(tokenizer.HasMoreTokens())
 	tokenizer.Advance()
 	assert.Equal("SYMBOL", tokenizer.TokenType())
-	assert.Equal(byte('='), tokenizer.Symbol())
+	assert.Equal("=", tokenizer.Symbol())
 
 	assert.True(tokenizer.HasMoreTokens())
 	tokenizer.Advance()
@@ -173,16 +209,16 @@ a = "some string"
 	assert.True(tokenizer.HasMoreTokens())
 	tokenizer.Advance()
 	assert.Equal("SYMBOL", tokenizer.TokenType())
-	assert.Equal(byte('='), tokenizer.Symbol())
+	assert.Equal("=", tokenizer.Symbol())
 
 	assert.True(tokenizer.HasMoreTokens())
 	tokenizer.Advance()
-	assert.Equal("STR_CONST", tokenizer.TokenType())
+	assert.Equal("STRING_CONST", tokenizer.TokenType())
 	assert.Equal("some string", tokenizer.StringVal())
 
 	assert.True(tokenizer.HasMoreTokens())
 	tokenizer.Advance()
-	assert.Equal("STR_CONST", tokenizer.TokenType())
+	assert.Equal("STRING_CONST", tokenizer.TokenType())
 	assert.Equal("zzz", tokenizer.StringVal())
 
 	assert.False(tokenizer.HasMoreTokens())
