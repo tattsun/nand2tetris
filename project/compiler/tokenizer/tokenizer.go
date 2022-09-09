@@ -10,6 +10,7 @@ type tokenInfo struct {
 	TokenType  string
 	Identifier string
 	Keyword    string
+	Symbol     byte
 }
 
 type Tokenizer struct {
@@ -66,6 +67,15 @@ func (t *Tokenizer) readToken() *tokenInfo {
 			continue
 		}
 
+		// symbol
+		if IsSymbol(buf[0]) {
+			return &tokenInfo{
+				TokenType: "SYMBOL",
+				Symbol:    buf[0],
+			}
+		}
+
+		// identifier or keyword
 		if IsAlpha(buf[0]) || IsUnderscore(buf[0]) {
 			// identifier
 			token += string(buf[0])
@@ -168,8 +178,8 @@ func (t *Tokenizer) KeyWord() string {
 	return t.currentToken.Keyword
 }
 
-func (t *Tokenizer) Symbol() rune {
-	panic("not implemented")
+func (t *Tokenizer) Symbol() byte {
+	return t.currentToken.Symbol
 }
 
 func (t *Tokenizer) Identifier() string {

@@ -1,5 +1,36 @@
 package tokenizer
 
+var symbols = []byte{
+	'{',
+	'}',
+	'(',
+	')',
+	'[',
+	']',
+	'.',
+	',',
+	';',
+	'+',
+	'-',
+	'*',
+	'/',
+	'&',
+	'|',
+	'<',
+	'>',
+	'=',
+	'~',
+}
+
+func IsSymbol(b byte) bool {
+	for _, symbol := range symbols {
+		if b == symbol {
+			return true
+		}
+	}
+	return false
+}
+
 func IsAlpha(b byte) bool {
 	lowerAlphabet := 'a' <= b && b <= 'z'
 	upperAlphabet := 'A' <= b && b <= 'Z'

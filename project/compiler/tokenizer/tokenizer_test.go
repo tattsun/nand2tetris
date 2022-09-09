@@ -83,3 +83,39 @@ hoge
 
 	assert.False(tokenizer.HasMoreTokens())
 }
+
+func TestTokenizer_Symbol(t *testing.T) {
+	assert := assert.New(t)
+
+	buf := bytes.NewBufferString(`
+a + b = c
+`)
+	tokenizer := NewTokenizer(buf)
+
+	assert.True(tokenizer.HasMoreTokens())
+	tokenizer.Advance()
+	assert.Equal("IDENTIFIER", tokenizer.TokenType())
+	assert.Equal("a", tokenizer.Identifier())
+
+	assert.True(tokenizer.HasMoreTokens())
+	tokenizer.Advance()
+	assert.Equal("SYMBOL", tokenizer.TokenType())
+	assert.Equal(byte('+'), tokenizer.Symbol())
+
+	assert.True(tokenizer.HasMoreTokens())
+	tokenizer.Advance()
+	assert.Equal("IDENTIFIER", tokenizer.TokenType())
+	assert.Equal("b", tokenizer.Identifier())
+
+	assert.True(tokenizer.HasMoreTokens())
+	tokenizer.Advance()
+	assert.Equal("SYMBOL", tokenizer.TokenType())
+	assert.Equal(byte('='), tokenizer.Symbol())
+
+	assert.True(tokenizer.HasMoreTokens())
+	tokenizer.Advance()
+	assert.Equal("IDENTIFIER", tokenizer.TokenType())
+	assert.Equal("c", tokenizer.Identifier())
+
+	assert.False(tokenizer.HasMoreTokens())
+}
