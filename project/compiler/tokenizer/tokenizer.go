@@ -257,6 +257,10 @@ func (t *Tokenizer) Symbol() string {
 	return string(t.currentToken.Symbol)
 }
 
+func (t *Tokenizer) RawSymbol() byte {
+	return t.currentToken.Symbol
+}
+
 func (t *Tokenizer) Identifier() string {
 	return t.currentToken.Identifier
 }

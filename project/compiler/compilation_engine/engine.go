@@ -6,19 +6,26 @@ import (
 )
 
 type CompilationEngine struct {
-	tokenizer *tokenizer.Tokenizer
-	w         io.Writer
+	t *tokenizer.Tokenizer
+	w io.Writer
 }
 
 func NewCompilationEngine(r io.Reader, w io.Writer) *CompilationEngine {
 	return &CompilationEngine{
-		tokenizer: tokenizer.NewTokenizer(r),
-		w:         w,
+		t: tokenizer.NewTokenizer(r),
+		w: w,
 	}
 }
 
-func (e *CompilationEngine) CompileClass() {
-	panic("not implemented")
+func (e *CompilationEngine) CompileClass() *Class {
+	e.mustKeyword("class")
+	className := e.mustIdentifier()
+	e.mustSymbol('{')
+	e.mustSymbol('}')
+
+	return &Class{
+		ClassName: className,
+	}
 }
 
 func (e *CompilationEngine) CompileClassVarDec() {

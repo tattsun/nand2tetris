@@ -51,7 +51,8 @@ func (a *Analyzer) Analyze(path string) error {
 			defer tf.Close()
 
 			compilationEngine := compilationengine.NewCompilationEngine(f, tf)
-			compilationEngine.CompileClass()
+			class := compilationEngine.CompileClass()
+			class.XML(tf, 0)
 		}
 	}
 
